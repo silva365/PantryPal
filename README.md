@@ -1,4 +1,4 @@
-# PantyPal
+# PantryPal
 
 PantryPal
 Your kitchen, intelligently organized. Scan groceries. Track freshness. Discover meals. Shop smarter.
