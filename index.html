@@ -1,0 +1,1034 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>PantryPal</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: product brief beside a sticky, working phone prototype; stacks with the phone first on narrow screens */
+:root {
+  --bg: #eaefec;
+  --surface: #ffffff;
+  --surface-2: #f2f5f3;
+  --ink: #132019;
+  --muted: #5d6b64;
+  --line: #d9e1dc;
+  --accent: #a32a62;        /* beet */
+  --accent-ink: #ffffff;
+  --accent-soft: #f6e3ec;
+  --fresh: #2f7d4a;
+  --soon: #9a6408;
+  --urgent: #b8362a;
+  --fresh-soft: #e2f1e6;
+  --soon-soft: #f8eccf;
+  --urgent-soft: #f8e0dc;
+  --frame: #132019;
+  --scrim: rgba(10, 20, 15, .45);
+  --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1512; --surface: #18201c; --surface-2: #212b26; --ink: #e8efea; --muted: #97a59d;
+    --line: #2e3a34; --accent: #e7799f; --accent-ink: #1b0b12; --accent-soft: #3a1d2a; --fresh: #5cc27f; --soon: #e2a73a;
+    --urgent: #f07a69; --fresh-soft: #1b3324; --soon-soft: #3a2e14; --urgent-soft: #3d1f1b; --frame: #000000; --scrim: rgba(0, 0, 0, .6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1512; --surface: #18201c; --surface-2: #212b26; --ink: #e8efea; --muted: #97a59d;
+  --line: #2e3a34; --accent: #e7799f; --accent-ink: #1b0b12; --accent-soft: #3a1d2a; --fresh: #5cc27f; --soon: #e2a73a;
+  --urgent: #f07a69; --fresh-soft: #1b3324; --soon-soft: #3a2e14; --urgent-soft: #3d1f1b; --frame: #000000; --scrim: rgba(0, 0, 0, .6);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, label:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 390px; gap: 56px; align-items: start; }
+
+/* ---------- Brief column ---------- */
+.brief { min-width: 0; display: grid; gap: 36px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+.brief h1 { font-family: var(--display); font-weight: 800; font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.02; letter-spacing: -.02em; margin: 12px 0 16px; text-wrap: balance; }
+.brief h2 { font-family: var(--display); font-size: 1.3rem; margin: 0 0 12px; letter-spacing: -.01em; }
+.lede { font-size: 1.15rem; color: var(--muted); max-width: 36ch; margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.chips span { font-family: var(--mono); font-size: 12px; padding: 5px 10px; border: 1px solid var(--line); border-radius: 99px; color: var(--muted); }
+.screens { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.screens button { background: var(--surface); border: 0; text-align: left; padding: 13px 16px; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; }
+.screens button:hover { background: var(--surface-2); }
+.screens button[aria-pressed="true"] { background: var(--accent-soft); }
+.screens b { font-weight: 700; }
+.screens span { grid-column: 1; color: var(--muted); font-size: .9rem; }
+.screens i { grid-row: 1 / 3; grid-column: 2; align-self: center; font-style: normal; color: var(--muted); }
+.features { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.features td { padding: 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.features td:first-child { padding-right: 14px; }
+.features td b { display: block; }
+.features td span { color: var(--muted); }
+.rel { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
+.rel.mvp { background: var(--accent-soft); color: var(--accent); }
+.rel.r2 { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); }
+.rel.later { color: var(--muted); border: 1px dashed var(--line); }
+.callout { border-left: 3px solid var(--accent); padding: 4px 0 4px 18px; }
+.callout p { margin: 0 0 8px; max-width: 60ch; }
+.callout p:last-child { margin: 0; color: var(--muted); }
+.flow { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 62ch; }
+.flow li::marker { font-family: var(--mono); color: var(--accent); }
+.note { font-size: .85rem; color: var(--muted); margin: 0; }
+.linkbtn { background: none; border: 0; padding: 0; text-decoration: underline; color: var(--accent); }
+
+/* ---------- Phone ---------- */
+.phone-col { position: sticky; top: 24px; }
+.phone { width: 390px; height: 812px; max-width: 100%; background: var(--frame); border-radius: 50px; padding: 10px; box-shadow: 0 30px 60px -30px rgba(10, 30, 20, .45); }
+.screen { position: relative; height: 100%; background: var(--bg); border-radius: 40px; overflow: hidden; display: flex; flex-direction: column; }
+.status { display: flex; justify-content: space-between; padding: 14px 30px 2px; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.appbar { padding: 8px 20px 12px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.appbar h2 { font-family: var(--display); font-size: 1.75rem; font-weight: 800; letter-spacing: -.02em; margin: 0; line-height: 1.05; }
+.appbar small { display: block; color: var(--muted); font-size: .82rem; margin-bottom: 3px; }
+.scroll { flex: 1; overflow-y: auto; padding: 0 16px 104px; }
+.tabs { position: absolute; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5, 1fr); background: var(--surface); border-top: 1px solid var(--line); padding: 6px 4px 22px; z-index: 5; }
+.tabs button { border: 0; background: none; display: grid; justify-items: center; gap: 1px; font-size: 10.5px; font-weight: 600; color: var(--muted); padding: 4px 0; }
+.tabs button[aria-current="page"] { color: var(--accent); }
+.tabs svg { width: 23px; height: 23px; }
+.tabs .scanbtn .disc { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; margin-top: -18px; box-shadow: 0 6px 14px -6px var(--accent); }
+.badge { position: relative; display: inline-grid; }
+.badge[data-n]:not([data-n="0"])::after { content: attr(data-n); position: absolute; top: -4px; right: -11px; background: var(--urgent); color: #fff; font-size: 10px; border-radius: 99px; padding: 0 5px; line-height: 16px; }
+
+/* ---------- Shared app pieces ---------- */
+.sec-h { display: flex; justify-content: space-between; align-items: baseline; margin: 18px 4px 8px; }
+.sec-h h3 { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin: 0; }
+.sec-h button { background: none; border: 0; color: var(--accent); font-weight: 600; font-size: 13px; padding: 0; }
+.list { background: var(--surface); border-radius: 18px; border: 1px solid var(--line); overflow: hidden; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; padding: 11px 14px; border-bottom: 1px solid var(--line); align-items: center; }
+.row:last-child { border-bottom: 0; }
+button.row { width: 100%; border-left: 0; border-right: 0; border-top: 0; background: none; text-align: left; }
+button.row:last-child { border-bottom: 0; }
+.row .name { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.meta { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.pill { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 99px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pill.fresh { background: var(--fresh-soft); color: var(--fresh); }
+.pill.soon { background: var(--soon-soft); color: var(--soon); }
+.pill.urgent { background: var(--urgent-soft); color: var(--urgent); }
+.pill.none { background: var(--surface-2); color: var(--muted); }
+.btn { border: 0; border-radius: 99px; padding: 10px 16px; font-weight: 700; font-size: 14px; background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: var(--surface-2); color: var(--ink); }
+.btn.line { background: none; border: 1px solid var(--line); color: var(--ink); }
+.btn.small { padding: 6px 12px; font-size: 13px; }
+.btn.block { width: 100%; }
+.btn[disabled] { opacity: .45; cursor: not-allowed; }
+.seg { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+.seg button { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 5px 12px; font-size: 13px; font-weight: 600; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.seg button.add { border-style: dashed; color: var(--muted); }
+.field { display: grid; gap: 4px; font-size: 12px; font-weight: 600; color: var(--muted); min-width: 0; }
+.field input, .field select, .input { width: 100%; min-width: 0; border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 8px 10px; font-size: 14px; font-weight: 500; color: var(--ink); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid3 { display: grid; grid-template-columns: 76px minmax(0, 1fr) minmax(0, 1.25fr); gap: 8px; }
+@media (max-width: 400px) { .grid3 { grid-template-columns: 76px minmax(0, 1fr); } .grid3 > :last-child { grid-column: 1 / -1; } }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 99px; background: var(--surface); }
+.stepper button { border: 0; background: none; width: 30px; height: 28px; font-size: 16px; line-height: 1; }
+.stepper span { min-width: 54px; text-align: center; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.empty { text-align: center; color: var(--muted); padding: 22px 12px; font-size: 14px; }
+.fine { font-size: 12px; color: var(--muted); margin: 10px 4px 0; }
+.toast { position: absolute; left: 16px; right: 16px; bottom: 96px; background: var(--ink); color: var(--bg); padding: 11px 14px; border-radius: 14px; font-weight: 600; font-size: 14px; transform: translateY(20px); opacity: 0; transition: .25s; pointer-events: none; z-index: 30; }
+.toast.show { transform: none; opacity: 1; }
+
+/* Sheet */
+.scrim { position: absolute; inset: 0; background: var(--scrim); z-index: 20; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 86%; overflow-y: auto; background: var(--bg); border-radius: 26px 26px 0 0; padding: 10px 18px 28px; z-index: 21; display: grid; gap: 12px; }
+.sheet .grab { width: 40px; height: 4px; border-radius: 4px; background: var(--line); justify-self: center; }
+.sheet h3 { font-family: var(--display); font-size: 1.3rem; margin: 0; }
+.sheet .acts { display: flex; gap: 8px; }
+.sheet .acts .btn { flex: 1; }
+
+/* Home */
+.scan-cta { width: 100%; border: 0; border-radius: 22px; background: var(--accent); color: var(--accent-ink); padding: 18px; display: grid; grid-template-columns: auto 1fr; gap: 0 14px; align-items: center; text-align: left; }
+.scan-cta svg { width: 38px; height: 38px; grid-row: 1 / 3; }
+.scan-cta b { font-family: var(--display); font-size: 1.3rem; }
+.scan-cta span { opacity: .85; font-size: 13px; }
+.quick { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 10px 12px; text-align: left; }
+.stat b { display: block; font-family: var(--display); font-size: 1.6rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.stat.warn b { color: var(--urgent); }
+
+/* Kitchen */
+.search { position: relative; margin-bottom: 10px; }
+.search input { padding-left: 34px; border-radius: 99px; }
+.search svg { position: absolute; left: 11px; top: 50%; translate: 0 -50%; width: 16px; height: 16px; color: var(--muted); }
+.krow { padding: 10px 14px; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 10px; align-items: center; }
+.krow:last-child { border-bottom: 0; }
+.krow .open { border: 0; background: none; padding: 0; text-align: left; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.krow .open small { display: block; font-family: var(--mono); font-size: 11px; color: var(--muted); font-weight: 500; }
+
+/* Scanner */
+.modes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 14px; margin-bottom: 12px; }
+.modes button { border: 0; background: none; border-radius: 10px; padding: 7px 2px; font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.modes button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+.stage { position: relative; aspect-ratio: 4 / 3.3; max-width: 100%; border-radius: 22px; background: #0b110e; overflow: hidden; display: grid; place-items: center; }
+.stage img, .stage svg.scene { width: 100%; height: 100%; object-fit: cover; display: block; }
+.stage .laser { position: absolute; left: 16%; right: 16%; height: 2px; background: var(--accent); box-shadow: 0 0 12px var(--accent); top: 50%; animation: sweep 2.2s ease-in-out infinite alternate; }
+@keyframes sweep { from { top: 25%; } to { top: 75%; } }
+.stage .frame { position: absolute; inset: 22% 14%; border: 2px solid rgba(255, 255, 255, .85); border-radius: 12px; }
+.stage .cap { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; color: #d9e1dc; font-size: 12.5px; }
+.receipt { background: #fbfbf7; color: #222; font-family: var(--mono); font-size: 11.5px; line-height: 1.7; width: 62%; padding: 14px 12px; border-radius: 4px; transform: rotate(-2deg); box-shadow: 0 8px 20px rgba(0, 0, 0, .4); }
+.receipt div { display: flex; justify-content: space-between; gap: 8px; }
+.stage-acts { display: grid; gap: 8px; margin: 12px 0; }
+.upload { display: block; text-align: center; border: 1px dashed var(--line); border-radius: 99px; padding: 9px; font-weight: 600; font-size: 14px; cursor: pointer; }
+.upload input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.steps li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: center; color: var(--muted); font-weight: 600; font-size: 14px; }
+.steps li .dot { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-size: 11px; }
+.steps li.on { color: var(--ink); }
+.steps li.on .dot { border-color: var(--accent); border-top-color: transparent; animation: spin .8s linear infinite; }
+.steps li.ok { color: var(--ink); }
+.steps li.ok .dot { background: var(--fresh); border-color: var(--fresh); color: #fff; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.banner { background: var(--accent-soft); border-radius: 14px; padding: 10px 12px; font-size: 13px; margin-bottom: 10px; }
+.banner b { display: block; font-size: 14px; }
+.cand { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 12px; margin-bottom: 10px; display: grid; gap: 9px; }
+.cand.off { opacity: .55; }
+.cand .top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.cand .top input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent); margin: 0; }
+.cand .nm { border: 1px solid transparent; background: none; font-weight: 700; font-size: 15px; padding: 4px 6px; border-radius: 8px; width: 100%; min-width: 0; color: var(--ink); }
+.cand .nm:hover, .cand .nm:focus { border-color: var(--line); background: var(--surface-2); }
+.conf { font-family: var(--mono); font-size: 10.5px; padding: 3px 7px; border-radius: 99px; white-space: nowrap; }
+.conf.hi { background: var(--fresh-soft); color: var(--fresh); }
+.conf.mid { background: var(--soon-soft); color: var(--soon); }
+.conf.lo { background: var(--urgent-soft); color: var(--urgent); }
+.conf.you { background: var(--surface-2); color: var(--muted); }
+.raw { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+.flag { font-size: 12.5px; color: var(--soon); background: var(--soon-soft); border-radius: 10px; padding: 6px 9px; }
+.flag.need { color: var(--urgent); background: var(--urgent-soft); }
+.alts { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--muted); }
+.alts button { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 2px 9px; font-size: 12.5px; font-weight: 600; }
+.dup { font-size: 12.5px; display: grid; gap: 6px; border-top: 1px dashed var(--line); padding-top: 8px; }
+.dup .seg { padding: 0; }
+.confirmbar { position: sticky; bottom: -104px; padding: 10px 0 0; background: linear-gradient(transparent, var(--bg) 30%); display: grid; gap: 6px; }
+
+/* Cook */
+.recipe { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; margin-bottom: 10px; }
+.recipe h4 { font-family: var(--display); font-size: 1.12rem; margin: 0 0 2px; line-height: 1.2; text-wrap: balance; }
+.recipe .why { font-size: 13px; color: var(--muted); margin: 0 0 10px; }
+.recipe .why b { color: var(--accent); }
+.ings { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+.ing { font-size: 12px; padding: 2px 8px; border-radius: 8px; background: var(--fresh-soft); color: var(--fresh); }
+.ing.exp { background: var(--soon-soft); color: var(--soon); font-weight: 700; }
+.ing.miss { background: transparent; border: 1px dashed var(--line); color: var(--muted); }
+.recipe .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+.recipe ol { margin: 10px 0 0; padding-left: 20px; font-size: 14px; }
+.recipe ol li { margin-bottom: 4px; }
+.safety { font-size: 12.5px; background: var(--surface-2); border-radius: 10px; padding: 8px 10px; margin-top: 8px; }
+.match { font-family: var(--mono); font-size: 11px; color: var(--muted); float: right; margin-left: 8px; }
+.recipe .art { position: relative; margin: -14px -16px 12px; aspect-ratio: 320 / 150; max-width: none; border-radius: 17px 17px 0 0; overflow: hidden; background: var(--surface-2); }
+.recipe .art svg, .thumb svg, .recipe .art img, .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; max-width: none; }
+.prompts { display: grid; gap: 10px; }
+.prompt { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--surface); display: grid; gap: 6px; }
+.prompt header { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.prompt b { font-size: .95rem; }
+.prompt p { margin: 0; font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--muted); overflow-wrap: anywhere; }
+.prompt .ok { font-family: var(--mono); font-size: 11px; color: var(--fresh); }
+.copy { border: 1px solid var(--line); background: var(--surface-2); border-radius: 99px; padding: 3px 10px; font-size: 12px; font-weight: 600; flex: none; }
+.ai-tag { position: absolute; left: 8px; bottom: 8px; font-family: var(--mono); font-size: 10px; letter-spacing: .04em; padding: 3px 7px; border-radius: 99px; background: rgba(12, 18, 15, .72); color: #f2f5f3; }
+.recipe.mini { width: 100%; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; padding: 10px; margin-bottom: 8px; }
+.recipe.mini .mt { display: block; font-family: var(--display); font-size: 1rem; line-height: 1.2; margin-bottom: 2px; }
+.thumb { position: relative; width: 76px; height: 76px; border-radius: 12px; overflow: hidden; }
+.thumb .ai-tag { left: 4px; bottom: 4px; font-size: 9px; padding: 1px 5px; }
+.later { border: 1px dashed var(--line); border-radius: 18px; padding: 14px 16px; color: var(--muted); font-size: 13.5px; }
+.later b { color: var(--ink); display: block; }
+
+/* Shopping */
+.check { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.check:last-child { border-bottom: 0; }
+.check input { width: 20px; height: 20px; accent-color: var(--accent); margin: 0; }
+.check label { font-weight: 600; overflow-wrap: anywhere; }
+.check label small { display: block; font-family: var(--mono); font-size: 11px; color: var(--muted); font-weight: 500; }
+.check.done label > span { text-decoration: line-through; color: var(--muted); }
+.addrow { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px; margin-bottom: 4px; }
+.addrow select { width: auto; }
+
+@media (max-width: 900px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .phone-col { order: -1; position: static; display: flex; justify-content: center; }
+}
+@media (max-width: 480px) {
+  body { padding-block: 12px 28px; }
+  .phone { width: 100%; height: min(780px, calc(100dvh - 24px)); padding: 0; background: none; box-shadow: none; border-radius: 0; }
+  .screen { border-radius: 24px; border: 1px solid var(--line); }
+  .status { display: none; }
+  .appbar { padding-top: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stage .laser, .steps li.on .dot { animation: none; }
+  .toast { transition: none; }
+}
+</style>
+
+<div class="wrap">
+  <div class="brief">
+    <section aria-labelledby="vh">
+      <div class="eyebrow">PantryPal · product prototype</div>
+      <h1 id="vh">Your kitchen, intelligently organized.</h1>
+      <p class="lede">Scan groceries. Track freshness. Discover meals. Shop smarter.</p>
+      <div class="chips"><span>AI-powered</span><span>Mobile-first</span><span>iOS + Android ready</span></div>
+    </section>
+
+    <section aria-labelledby="sh">
+      <h2 id="sh">Five primary screens</h2>
+      <div class="screens" role="group" aria-label="Open a screen in the prototype">
+        <button data-go="home"><b>Home Dashboard</b><span>Pantry totals, items needing attention, suggested meals, Scan Groceries.</span><i>→</i></button>
+        <button data-go="kitchen"><b>My Kitchen</b><span>Fridge, freezer, pantry and custom locations. Search, quantities, dates.</span><i>→</i></button>
+        <button data-go="scan"><b>AI Scanner</b><span>Photo, barcode, receipt or manual entry, always followed by a review.</span><i>→</i></button>
+        <button data-go="cook"><b>Cook With What I Have</b><span>Recipes by ingredients, diet, time and what to use soon.</span><i>→</i></button>
+        <button data-go="list"><b>Shopping List</b><span>Missing ingredients, recurring essentials, household needs.</span><i>→</i></button>
+      </div>
+    </section>
+
+    <section aria-labelledby="ch">
+      <h2 id="ch">Why every scan ends in a review</h2>
+      <div class="callout">
+        <p>A model can recognize a carton of eggs. It can't reliably know how many eggs are inside a closed carton, or read an expiry date from a label it can't see. So the scanner suggests and the person confirms. Nothing is saved until they do.</p>
+        <p>Scanning is optional. Quick manual entry and barcode scanning are always one tap away.</p>
+      </div>
+    </section>
+
+    <section aria-labelledby="fh">
+      <h2 id="fh">Add groceries from a photo</h2>
+      <ol class="flow">
+        <li>Tap Scan Groceries and photograph your groceries on the counter.</li>
+        <li>The image is compressed and sent securely to the backend.</li>
+        <li>AI returns structured suggestions: product name, possible quantity, category and confidence.</li>
+        <li>A review screen lets the user correct names, quantities, storage locations and dates.</li>
+        <li>Once confirmed, PantryPal updates inventory and refreshes recipe recommendations.</li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="ah">
+      <h2 id="ah">AI features</h2>
+      <div style="overflow-x:auto">
+      <table class="features">
+        <tr><td><b>Grocery photo recognition</b><span>Identifies visible items, suggests quantities, asks for confirmation before saving.</span></td><td><span class="rel mvp">MVP</span></td></tr>
+        <tr><td><b>Receipt scanning</b><span>Extracts names and quantities, expands abbreviations, checks for duplicates.</span></td><td><span class="rel mvp">MVP</span></td></tr>
+        <tr><td><b>Personalized recipes</b><span>By ingredients, time, preferences and missing items. Steps checked for completeness and sensible cooking guidance.</span></td><td><span class="rel mvp">MVP</span></td></tr>
+        <tr><td><b>AI meal images</b><span>One generated image per recipe, labelled as AI and as a serving suggestion. Cached and reused rather than generated on every view. Never presented as a photo of the user's own food.</span></td><td><span class="rel r2">Proposed</span></td></tr>
+        <tr><td><b>Freshness intelligence</b><span>Uses recorded dates, storage and general guidance. Never claims a photo proves food is safe.</span></td><td><span class="rel r2">Second release</span></td></tr>
+        <tr><td><b>AI meal planning</b><span>Weekly plan that uses what you have and lists what's missing.</span></td><td><span class="rel later">Later</span></td></tr>
+      </table>
+      </div>
+    </section>
+
+    <section aria-labelledby="ih">
+      <h2 id="ih">Meal image style</h2>
+      <p class="note" style="margin-bottom:12px;max-width:62ch">The salmon image sets the quality bar: photoreal, close and appetizing. Every recipe image uses the same style text so the set looks consistent, and shows only ingredients the recipe actually uses.</p>
+      <div class="prompts" id="prompts"></div>
+    </section>
+
+    <p class="note">The phone is a working demo with sample groceries. The camera, AI results and barcode lookups are simulated with sample data. Your changes stay in this browser. <button class="linkbtn" id="reset">Reset demo</button></p>
+  </div>
+
+  <div class="phone-col">
+    <div class="phone">
+      <div class="screen" id="screen">
+        <div class="status"><span id="clock">9:41</span><span>5G ▮</span></div>
+        <header class="appbar">
+          <div><small id="sub"></small><h2 id="title">Home</h2></div>
+        </header>
+        <main class="scroll" id="view"></main>
+        <nav class="tabs" aria-label="App sections">
+          <button data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>Home</button>
+          <button data-tab="kitchen"><span class="badge" id="kBadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M5 10h14M8.5 6.5v1.5M8.5 13v2.5"/></svg></span>Kitchen</button>
+          <button data-tab="scan" class="scanbtn" aria-label="AI Scanner"><span class="disc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3.2"/></svg></span>Scan</button>
+          <button data-tab="cook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12h18a9 9 0 0 1-18 0zM8 8c0-2 2-2 2-4M13 8c0-2 2-2 2-4"/></svg>Cook</button>
+          <button data-tab="list"><span class="badge" id="lBadge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7h14l-1.5 12a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1zM9 7V5a3 3 0 0 1 6 0v2"/></svg></span>List</button>
+        </nav>
+        <div class="scrim" id="scrim" hidden></div>
+        <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden></div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var DAY = 86400000;
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  var T0 = today.getTime();
+  var KEY = 'pantrypal-demo-v2';
+  var BASE_LOCS = ['Fridge', 'Freezer', 'Pantry'];
+
+  function seed() {
+    var n = 0;
+    function it(name, qty, unit, loc, days, kind) {
+      return { id: 'i' + (n++), name: name, qty: qty, unit: unit, loc: loc, date: days == null ? null : T0 + days * DAY, kind: kind || 'Use by' };
+    }
+    return {
+      nextId: 500,
+      locs: ['Fridge', 'Freezer', 'Pantry', 'Garage shelf'],
+      prefs: { time: 'any', diet: [], useSoon: true },
+      items: [
+        it('Salmon fillets', 2, 'pcs', 'Fridge', 0), it('Baby spinach', 150, 'g', 'Fridge', 1), it('Chicken thighs', 500, 'g', 'Fridge', 2),
+        it('Fresh basil', 1, 'bunch', 'Fridge', 2), it('Greek yogurt', 1, 'tub', 'Fridge', 4), it('Whole milk', 1, 'L', 'Fridge', 4),
+        it('Bell peppers', 2, 'pcs', 'Fridge', 5), it('Eggs', 9, 'pcs', 'Fridge', 18, 'Best before'), it('Cheddar', 200, 'g', 'Fridge', 20),
+        it('Frozen peas', 800, 'g', 'Freezer', 120, 'Best before'), it('Prawns', 300, 'g', 'Freezer', 60, 'Best before'), it('Vanilla ice cream', 1, 'tub', 'Freezer', null),
+        it('Vine tomatoes', 4, 'pcs', 'Pantry', 3, 'Best before'), it('Avocado', 1, 'pcs', 'Pantry', 2, 'Best before'), it('Lemons', 3, 'pcs', 'Pantry', 9, 'Best before'),
+        it('Garlic', 1, 'bulb', 'Pantry', 25, 'Best before'), it('Onions', 3, 'pcs', 'Pantry', 30, 'Best before'), it('Basmati rice', 600, 'g', 'Pantry', 300, 'Best before'),
+        it('Penne', 500, 'g', 'Pantry', 365, 'Best before'), it('Chickpeas', 2, 'tins', 'Pantry', 500, 'Best before'), it('Olive oil', 1, 'bottle', 'Pantry', null),
+        it('Sparkling water', 12, 'cans', 'Garage shelf', null)
+      ],
+      list: [
+        { id: 's1', name: 'Feta', sec: 'missing', note: 'For chickpea shakshuka', bought: false },
+        { id: 's2', name: 'Whole milk', sec: 'essential', note: 'Every week · last bought 6 days ago', bought: false },
+        { id: 's3', name: 'Bananas', sec: 'essential', note: 'Every week · last bought 8 days ago', bought: false },
+        { id: 's4', name: 'Bread', sec: 'essential', note: 'Every week · last bought 5 days ago', bought: false },
+        { id: 's5', name: 'Dish soap', sec: 'household', note: '', bought: false },
+        { id: 's6', name: 'Paper towels', sec: 'household', note: '', bought: false }
+      ]
+    };
+  }
+  var state;
+  try { state = JSON.parse(localStorage.getItem(KEY)); } catch (e) { state = null; }
+  if (!state || !state.items || !state.prefs) state = seed();
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function nid(p) { return p + (state.nextId++); }
+
+  var RECIPES = [
+    { name: 'Lemon-garlic salmon with wilted spinach', mins: 20, diet: ['gf', 'df'], uses: ['Salmon fillets', 'Baby spinach', 'Lemons', 'Garlic', 'Basmati rice'],
+      steps: ['Rinse 150 g rice and simmer, covered, for 12 minutes. Rest 5 minutes off the heat.', 'Pat the salmon dry and season. Sear skin-side down over medium-high heat for 5 minutes, then flip for 2 to 3 minutes.', 'Lower the heat, add sliced garlic and the spinach, and stir until wilted (about 1 minute).', 'Finish with lemon juice and zest. Serve over the rice.'],
+      safety: 'Salmon is done when it flakes easily and reaches 63 °C / 145 °F in the thickest part.' },
+    { name: 'Chicken & pepper rice bowl with garlic yogurt', mins: 30, diet: ['gf'], uses: ['Chicken thighs', 'Bell peppers', 'Onions', 'Basmati rice', 'Greek yogurt', 'Garlic'],
+      steps: ['Heat the oven to 220 °C / 425 °F.', 'Toss chicken, sliced peppers and onion with oil and salt on a tray. Roast for 22 to 25 minutes.', 'Meanwhile cook the rice.', 'Stir a grated garlic clove and a pinch of salt into 4 tbsp yogurt.', 'Slice the chicken and serve over rice with the sauce.'],
+      safety: 'Cook chicken to 74 °C / 165 °F. The juices should run clear with no pink at the bone.' },
+    { name: 'Fresh tomato & basil penne', mins: 15, diet: ['veg'], uses: ['Vine tomatoes', 'Fresh basil', 'Garlic', 'Penne', 'Parmesan'],
+      steps: ['Boil 200 g penne in salted water for the time on the pack.', 'Fry sliced garlic in olive oil for 30 seconds, add chopped tomatoes and cook for 6 to 8 minutes until saucy.', 'Toss in the drained pasta with a splash of pasta water.', 'Finish with torn basil and grated parmesan.'] },
+    { name: 'Chickpea shakshuka', mins: 25, diet: ['veg', 'gf'], uses: ['Eggs', 'Vine tomatoes', 'Onions', 'Chickpeas', 'Bell peppers', 'Ground cumin', 'Feta'],
+      steps: ['Soften sliced onion and pepper in oil for 6 minutes. Add 1 tsp cumin for 30 seconds.', 'Add chopped tomatoes and drained chickpeas. Simmer for 10 minutes.', 'Make 4 wells, crack in the eggs, cover and cook on low for 6 to 8 minutes.', 'Crumble feta over the top.'],
+      safety: 'Cook until the egg whites are fully set.' },
+    { name: 'Prawn & pea fried rice', mins: 15, diet: ['df'], uses: ['Prawns', 'Frozen peas', 'Eggs', 'Basmati rice', 'Garlic', 'Soy sauce'],
+      steps: ['Use rice cooked earlier and chilled, or cook and spread it out to cool quickly.', 'Stir-fry garlic and prawns over high heat for 2 to 3 minutes.', 'Push aside, scramble 2 eggs, then add rice and peas and toss for 3 minutes.', 'Season with soy sauce.'],
+      safety: 'Prawns are cooked when pink and opaque all through. Refrigerate leftover rice within 1 hour.' },
+    { name: 'Smashed avocado & egg toast', mins: 10, diet: ['veg', 'df'], uses: ['Avocado', 'Eggs', 'Lemons', 'Bread'],
+      steps: ['Toast 2 slices of bread.', 'Mash the avocado with lemon juice and salt.', 'Fry or soft-boil 2 eggs (6½ minutes for jammy yolks).', 'Spread, top and season.'] }
+  ];
+  var DIET = { veg: 'Vegetarian', df: 'Dairy-free', gf: 'Gluten-free' };
+
+  // Sample model output. The prototype never sends anything anywhere.
+  var PHOTO_RESULT = [
+    { name: 'Eggs', qty: null, unit: 'pcs', loc: 'Fridge', conf: .95, cat: 'Dairy & eggs', flags: [['need', 'Can’t count eggs inside a closed carton. Enter how many.'], ['', 'Date label not readable. Add it, or leave it blank.']] },
+    { name: 'Bananas', qty: 5, unit: 'pcs', loc: 'Pantry', conf: .97, cat: 'Fruit', flags: [['', 'Quantity estimated from what’s visible.']] },
+    { name: 'Whole milk', qty: 2, unit: 'L', loc: 'Fridge', conf: .88, cat: 'Dairy & eggs', flags: [['', 'Date label not readable. Add it, or leave it blank.']] },
+    { name: 'Cheddar', qty: 200, unit: 'g', loc: 'Fridge', conf: .71, cat: 'Cheese', alts: ['Gouda', 'Red Leicester'], flags: [] },
+    { name: 'Leafy greens', qty: 1, unit: 'bag', loc: 'Fridge', conf: .48, cat: 'Vegetables', alts: ['Baby spinach', 'Rocket', 'Mixed salad'], flags: [['', 'Low confidence. Pick the right product or rename it.']] }
+  ];
+  var RECEIPT_RESULT = [
+    { raw: 'GRK YOG 0% 500G      2.15', name: 'Greek yogurt', qty: 500, unit: 'g', loc: 'Fridge', conf: .93, cat: 'Dairy & eggs', flags: [] },
+    { raw: 'BNNS LSE 1.12KG      1.21', name: 'Bananas', qty: 7, unit: 'pcs', loc: 'Pantry', conf: .9, cat: 'Fruit', flags: [['', 'Sold by weight (1.12 kg). About 7 bananas.']] },
+    { raw: 'FETA PDO 200G        2.40', name: 'Feta', qty: 200, unit: 'g', loc: 'Fridge', conf: .96, cat: 'Cheese', flags: [] },
+    { raw: 'GRD CUMIN 45G        1.10', name: 'Ground cumin', qty: 45, unit: 'g', loc: 'Pantry', conf: .89, cat: 'Spices', flags: [] },
+    { raw: 'SOY SCE LS 150ML     1.65', name: 'Soy sauce', qty: 150, unit: 'ml', loc: 'Pantry', conf: .74, cat: 'Sauces', alts: ['Soy sauce (low salt)'], flags: [] },
+    { raw: 'CARRIER BAG          0.10', name: 'Carrier bag', qty: 1, unit: '', loc: 'Pantry', conf: .99, cat: 'Not food', off: true, flags: [['', 'Not a grocery item. Skipped unless you include it.']] }
+  ];
+  var BARCODES = [
+    { code: '5 012345 678900', name: 'Bread', qty: 1, unit: 'loaf', loc: 'Pantry', cat: 'Bakery' },
+    { code: '8 001234 500127', name: 'Parmesan', qty: 150, unit: 'g', loc: 'Fridge', cat: 'Cheese' },
+    { code: '5 000128 345001', name: 'Butter', qty: 250, unit: 'g', loc: 'Fridge', cat: 'Dairy & eggs' }
+  ];
+  var bcIdx = 0;
+
+  // ---------- helpers ----------
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function iso(ms) { if (ms == null) return ''; var d = new Date(ms); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function fromIso(s) { if (!s) return null; var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).getTime(); }
+  function days(it) { return it.date == null ? null : Math.round((it.date - T0) / DAY); }
+  function fmtQty(q, u) { return (q == null ? '?' : q) + (u ? ' ' + u : ''); }
+  function step(u) { return u === 'g' ? 50 : u === 'ml' ? 50 : 1; }
+  function status(it) {
+    var d = days(it);
+    if (d == null) return ['none', 'No date'];
+    if (d < 0) return ['urgent', 'Past date'];
+    if (d === 0) return ['urgent', 'Today'];
+    if (d === 1) return ['urgent', 'Tomorrow'];
+    if (d <= 3) return ['soon', d + ' days'];
+    if (d > 60) return ['fresh', Math.round(d / 30) + ' months'];
+    return ['fresh', d + ' days'];
+  }
+  function dateLine(it) {
+    if (it.date == null) return 'No date recorded';
+    var d = new Date(it.date);
+    return it.kind + ' ' + d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  }
+  function find(name) { var n = name.trim().toLowerCase(); return state.items.find(function (i) { return i.name.toLowerCase() === n; }); }
+  function needsAttention() { return state.items.filter(function (i) { var d = days(i); return d != null && d <= 2; }).sort(function (a, b) { return a.date - b.date; }); }
+  function openList() { return state.list.filter(function (l) { return !l.bought; }); }
+  function onList(name) { return state.list.find(function (l) { return l.name.toLowerCase() === name.toLowerCase() && !l.bought; }); }
+  function addToList(name, sec, note) { if (onList(name)) return false; state.list.push({ id: nid('s'), name: name, sec: sec, note: note || '', bought: false }); return true; }
+  function locOptions(sel) { return state.locs.map(function (l) { return '<option' + (l === sel ? ' selected' : '') + '>' + esc(l) + '</option>'; }).join(''); }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var view = $('view'), toastT;
+  function toast(msg) { var t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('show'); }, 2400); }
+
+  function openSheet(html, mount) {
+    var s = $('sheet'); s.innerHTML = '<div class="grab"></div>' + html; s.hidden = false; $('scrim').hidden = false; s.scrollTop = 0;
+    if (mount) mount(s);
+    var f = s.querySelector('input, select, button.btn'); if (f) f.focus();
+  }
+  function closeSheet() { $('sheet').hidden = true; $('scrim').hidden = true; }
+  $('scrim').onclick = closeSheet;
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('sheet').hidden) closeSheet(); });
+
+  // ---------- recipes ----------
+  function rank() {
+    var p = state.prefs;
+    return RECIPES.map(function (r) {
+      var score = 0, exp = [], miss = [];
+      r.uses.forEach(function (u) {
+        var h = find(u);
+        if (!h) { miss.push(u); score -= 1.5; return; }
+        var d = days(h);
+        if (d != null && d <= 3) { exp.push(u); score += p.useSoon ? 3 : 1; } else score += 1;
+      });
+      return { r: r, score: score, exp: exp, miss: miss, pct: Math.round((r.uses.length - miss.length) / r.uses.length * 100) };
+    }).filter(function (x) {
+      if (p.time !== 'any' && x.r.mins > +p.time) return false;
+      return p.diet.every(function (d) { return x.r.diet.indexOf(d) > -1; });
+    }).sort(function (a, b) { return b.score - a.score; });
+  }
+
+  // ---------- navigation ----------
+  var tab = 'home';
+  var TITLES = { home: 'Home', kitchen: 'My Kitchen', scan: 'AI Scanner', cook: 'Cook With What I Have', list: 'Shopping List' };
+  function go(t, opts) {
+    tab = t; closeSheet();
+    if (t === 'scan' && scan.stage === 'processing') scan.stage = 'pick';
+    if (t === 'scan' && opts && opts.mode) { scan.mode = opts.mode; scan.stage = 'pick'; }
+    view.scrollTop = 0; render();
+  }
+  function badges() {
+    $('kBadge').setAttribute('data-n', needsAttention().length);
+    $('lBadge').setAttribute('data-n', openList().length);
+  }
+  function render() {
+    document.querySelectorAll('.tabs button').forEach(function (b) { if (b.dataset.tab === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+    document.querySelectorAll('.screens button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.go === tab)); });
+    $('title').textContent = TITLES[tab];
+    badges();
+    ({ home: renderHome, kitchen: renderKitchen, scan: renderScan, cook: renderCook, list: renderList })[tab]();
+  }
+
+  // ---------- Home ----------
+  function renderHome() {
+    $('sub').textContent = today.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+    var att = needsAttention(), top = rank().slice(0, 2);
+    var h = '<button class="scan-cta" data-go="scan" data-mode="photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="12" r="3.2"/></svg><b>Scan Groceries</b><span>Photo, barcode or receipt. You review before anything is saved.</span></button>' +
+      '<div class="quick"><button class="btn line small" data-go="scan" data-mode="manual">+ Add manually</button><button class="btn line small" data-go="scan" data-mode="barcode">Scan a barcode</button></div>' +
+      '<div class="stats"><button class="stat" data-go="kitchen"><b>' + state.items.length + '</b><span>In your kitchen</span></button>' +
+      '<button class="stat' + (att.length ? ' warn' : '') + '" data-go="kitchen"><b>' + att.length + '</b><span>Need attention</span></button>' +
+      '<button class="stat" data-go="list"><b>' + openList().length + '</b><span>On your list</span></button></div>';
+    h += '<div class="sec-h"><h3>Needs attention</h3><button data-go="kitchen">My Kitchen</button></div>';
+    if (!att.length) h += '<div class="list"><div class="empty">Nothing is near its recorded date.</div></div>';
+    else h += '<div class="list">' + att.slice(0, 4).map(function (i) {
+      var s = status(i);
+      return '<button class="row" data-edit="' + i.id + '"><span class="name">' + esc(i.name) + '<span class="meta" style="display:block">' + esc(fmtQty(i.qty, i.unit)) + ' · ' + esc(i.loc) + ' · ' + esc(dateLine(i)) + '</span></span><span class="pill ' + s[0] + '">' + s[1] + '</span></button>';
+    }).join('') + '</div>';
+    h += '<div class="sec-h"><h3>Suggested meals</h3><button data-go="cook">See all</button></div>';
+    h += top.map(function (x) {
+      return '<button class="recipe mini" data-go="cook"><span class="thumb">' + mealArt(x.r.name) + '<span class="ai-tag">AI</span></span><span style="min-width:0"><b class="mt">' + esc(x.r.name) + '</b><span class="why" style="display:block;margin:0">' + x.r.mins + ' min · ' + x.pct + '% in stock<br>' +
+        (x.exp.length ? 'uses <b>' + esc(x.exp.join(', ').toLowerCase()) + '</b>' : 'uses what you have') + '</span></span></button>';
+    }).join('');
+    view.innerHTML = h;
+  }
+
+  // ---------- My Kitchen ----------
+  var kLoc = 'All', kQuery = '';
+  function renderKitchen() {
+    $('sub').textContent = state.items.length + ' items · ' + state.locs.length + ' locations';
+    view.innerHTML =
+      '<div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg><input class="input" id="kSearch" type="search" placeholder="Search your kitchen" value="' + esc(kQuery) + '" aria-label="Search your kitchen"></div>' +
+      '<div class="seg" role="group" aria-label="Location">' + ['All'].concat(state.locs).map(function (l) { return '<button data-kloc="' + esc(l) + '" aria-pressed="' + (kLoc === l) + '">' + esc(l) + '</button>'; }).join('') +
+      '<button class="add" id="addLoc">+ Location</button></div><div id="kList"></div>' +
+      '<p class="fine">Dates are the ones you recorded. Labels are a guide; check food before you eat it.</p>';
+    $('kSearch').oninput = function () { kQuery = this.value; renderKList(); };
+    $('addLoc').onclick = function () {
+      openSheet('<h3 id="sheetTitle">Add a storage location</h3><label class="field">Name<input id="locName" placeholder="e.g. Basement freezer, Spice drawer"></label><div class="acts"><button class="btn ghost" data-close>Cancel</button><button class="btn" id="locSave">Add location</button></div>', function () {
+        $('locSave').onclick = function () {
+          var v = $('locName').value.trim();
+          if (!v) { $('locName').focus(); return; }
+          if (state.locs.some(function (l) { return l.toLowerCase() === v.toLowerCase(); })) { toast(v + ' already exists'); return; }
+          state.locs.push(v); kLoc = v; save(); closeSheet(); renderKitchen(); toast(v + ' added');
+        };
+      });
+    };
+    renderKList();
+  }
+  function renderKList() {
+    var q = kQuery.trim().toLowerCase();
+    var items = state.items.filter(function (i) { return (kLoc === 'All' || i.loc === kLoc) && (!q || i.name.toLowerCase().indexOf(q) > -1); })
+      .sort(function (a, b) { return (a.date == null ? 1e15 : a.date) - (b.date == null ? 1e15 : b.date); });
+    var locs = kLoc === 'All' ? state.locs : [kLoc];
+    var h = '';
+    locs.forEach(function (l) {
+      var here = items.filter(function (i) { return i.loc === l; });
+      if (!here.length && (q || kLoc === 'All')) return;
+      h += '<div class="sec-h"><h3>' + esc(l) + (BASE_LOCS.indexOf(l) < 0 ? ' · custom' : '') + '</h3><span class="meta">' + here.length + '</span></div>';
+      if (!here.length) { h += '<div class="list"><div class="empty">Nothing here yet.</div></div>'; return; }
+      h += '<div class="list">' + here.map(function (i) {
+        var s = status(i);
+        return '<div class="krow"><button class="open" data-edit="' + i.id + '">' + esc(i.name) + '<small>' + esc(dateLine(i)) + '</small></button><span class="pill ' + s[0] + '">' + s[1] + '</span>' +
+          '<span></span><span class="stepper"><button data-dec="' + i.id + '" aria-label="Less ' + esc(i.name) + '">−</button><span>' + esc(fmtQty(i.qty, i.unit)) + '</span><button data-inc="' + i.id + '" aria-label="More ' + esc(i.name) + '">+</button></span></div>';
+      }).join('') + '</div>';
+    });
+    if (!h) h = '<div class="list" style="margin-top:8px"><div class="empty">No items match "' + esc(kQuery) + '".<br><button class="btn small" style="margin-top:10px" data-go="scan" data-mode="manual">Add it manually</button></div></div>';
+    $('kList').innerHTML = h;
+  }
+  function editItem(id) {
+    var i = state.items.find(function (x) { return x.id === id; }); if (!i) return;
+    openSheet('<h3 id="sheetTitle">Edit item</h3>' +
+      '<label class="field">Name<input id="eName" value="' + esc(i.name) + '"></label>' +
+      '<div class="grid2"><label class="field">Quantity<input id="eQty" type="number" min="0" step="any" value="' + (i.qty == null ? '' : i.qty) + '"></label><label class="field">Unit<input id="eUnit" value="' + esc(i.unit) + '"></label></div>' +
+      '<label class="field">Location<select id="eLoc">' + locOptions(i.loc) + '</select></label>' +
+      '<div class="grid2"><label class="field">Date type<select id="eKind"><option' + (i.kind === 'Use by' ? ' selected' : '') + '>Use by</option><option' + (i.kind === 'Best before' ? ' selected' : '') + '>Best before</option><option' + (i.kind === 'Opened' ? ' selected' : '') + '>Opened</option></select></label>' +
+      '<label class="field">Date<input id="eDate" type="date" value="' + iso(i.date) + '"></label></div>' +
+      '<div class="acts"><button class="btn ghost" id="eDel">Remove</button><button class="btn" id="eSave">Save</button></div>', function () {
+      var armed = false;
+      $('eDel').onclick = function () {
+        if (!armed) { armed = true; this.textContent = 'Tap again to remove'; return; }
+        state.items = state.items.filter(function (x) { return x !== i; }); save(); closeSheet(); render(); toast(i.name + ' removed');
+      };
+      $('eSave').onclick = function () {
+        var n = $('eName').value.trim(); if (!n) { $('eName').focus(); return; }
+        var q = $('eQty').value;
+        i.name = n; i.qty = q === '' ? null : Math.max(0, +q); i.unit = $('eUnit').value.trim(); i.loc = $('eLoc').value; i.kind = $('eKind').value; i.date = fromIso($('eDate').value);
+        save(); closeSheet(); render(); toast('Saved');
+      };
+    });
+  }
+
+  // ---------- AI Scanner ----------
+  var scan = { mode: 'photo', stage: 'pick', cands: [], photoUrl: null, done: [] };
+  var MODES = [['photo', 'Photo'], ['barcode', 'Barcode'], ['receipt', 'Receipt'], ['manual', 'Manual']];
+  function renderScan() {
+    var labels = { pick: 'Optional: you can always add by hand', processing: 'Working…', review: 'Review before saving', done: 'Saved' };
+    $('sub').textContent = labels[scan.stage];
+    if (scan.stage === 'processing') return; // handled by runPipeline
+    if (scan.stage === 'review') return renderReview();
+    if (scan.stage === 'done') return renderDone();
+    var h = '<div class="modes" role="group" aria-label="How to add">' + MODES.map(function (m) { return '<button data-mode-pick="' + m[0] + '" aria-pressed="' + (scan.mode === m[0]) + '">' + m[1] + '</button>'; }).join('') + '</div>';
+    if (scan.mode === 'photo') {
+      h += '<div class="stage">' + (scan.photoUrl ? '<img src="' + scan.photoUrl + '" alt="Your photo">' : sceneSvg()) + '<span class="cap">' + (scan.photoUrl ? 'Your photo' : 'Sample photo: groceries on a counter') + '</span></div>' +
+        '<div class="stage-acts"><button class="btn block" id="goPhoto">Identify groceries</button>' +
+        '<label class="upload">' + (scan.photoUrl ? 'Choose a different photo' : 'Use your own photo') + '<input type="file" accept="image/*" id="photoIn"></label></div>' +
+        '<p class="fine">Demo: identification returns sample results whatever photo you use. The AI suggests; you confirm every item.</p>';
+    } else if (scan.mode === 'barcode') {
+      var b = BARCODES[bcIdx % BARCODES.length];
+      h += '<div class="stage"><svg class="scene" viewBox="0 0 400 330" aria-hidden="true"><rect width="400" height="330" fill="#1c2520"/><rect x="110" y="95" width="180" height="140" rx="8" fill="#f4f4ef"/>' + barcodeBars() + '<text x="200" y="222" text-anchor="middle" font-family="monospace" font-size="13" fill="#222">' + b.code + '</text></svg><span class="frame"></span><span class="laser"></span><span class="cap">Line up the barcode inside the frame</span></div>' +
+        '<div class="stage-acts"><button class="btn block" id="goBarcode">Scan barcode</button></div><p class="fine">Barcodes identify the product and pack size. The use-by date isn’t in a barcode, so you add it.</p>';
+    } else if (scan.mode === 'receipt') {
+      h += '<div class="stage" style="background:#2a332e"><div class="receipt"><div style="justify-content:center;font-weight:700">FRESHWAY MARKET</div>' +
+        RECEIPT_RESULT.map(function (r) { var p = r.raw.split(/\s{2,}/); return '<div><span>' + esc(p[0]) + '</span><span>' + esc(p[1]) + '</span></div>'; }).join('') +
+        '<div style="border-top:1px dashed #999;margin-top:4px"><span>TOTAL</span><span>8.61</span></div></div></div>' +
+        '<div class="stage-acts"><button class="btn block" id="goReceipt">Read receipt</button></div><p class="fine">PantryPal expands abbreviations and checks each line against what you already have.</p>';
+    } else {
+      h += '<div class="list" style="padding:14px;display:grid;gap:10px">' +
+        '<label class="field">Item<input id="mName" placeholder="e.g. Mushrooms" list="mSuggest" autocomplete="off"></label><datalist id="mSuggest">' + ['Mushrooms', 'Carrots', 'Butter', 'Parmesan', 'Bread', 'Feta', 'Apples', 'Oat milk'].map(function (x) { return '<option value="' + x + '">'; }).join('') + '</datalist>' +
+        '<div class="grid2"><label class="field">Quantity<input id="mQty" type="number" min="0" step="any" value="1"></label><label class="field">Unit<input id="mUnit" placeholder="pcs, g, L…"></label></div>' +
+        '<label class="field">Location<select id="mLoc">' + locOptions('Fridge') + '</select></label>' +
+        '<div class="grid2"><label class="field">Date type<select id="mKind"><option>Use by</option><option>Best before</option></select></label><label class="field">Date (optional)<input id="mDate" type="date"></label></div>' +
+        '<button class="btn" id="mAdd">Add to kitchen</button></div>';
+    }
+    view.innerHTML = h;
+    view.querySelectorAll('[data-mode-pick]').forEach(function (b) { b.onclick = function () { scan.mode = b.dataset.modePick; renderScan(); }; });
+    if ($('photoIn')) $('photoIn').onchange = function () {
+      var f = this.files && this.files[0]; if (!f) return;
+      if (scan.photoUrl) URL.revokeObjectURL(scan.photoUrl);
+      scan.photoUrl = URL.createObjectURL(f); renderScan();
+    };
+    if ($('goPhoto')) $('goPhoto').onclick = function () {
+      runPipeline(['Compressing photo · 3.1 MB → 280 KB', 'Sending securely to PantryPal', 'Identifying visible items', 'Preparing your review'], PHOTO_RESULT, 'photo');
+    };
+    if ($('goBarcode')) $('goBarcode').onclick = function () {
+      var b = BARCODES[bcIdx++ % BARCODES.length];
+      runPipeline(['Reading barcode ' + b.code, 'Looking up product'], [{ name: b.name, qty: b.qty, unit: b.unit, loc: b.loc, conf: 1, cat: b.cat, raw: 'Barcode ' + b.code, flags: [['', 'Add the use-by date from the pack, or leave it blank.']] }], 'barcode');
+    };
+    if ($('goReceipt')) $('goReceipt').onclick = function () {
+      runPipeline(['Compressing image', 'Sending securely to PantryPal', 'Extracting line items', 'Expanding abbreviations', 'Checking for duplicates'], RECEIPT_RESULT, 'receipt');
+    };
+    if ($('mAdd')) $('mAdd').onclick = function () {
+      var n = $('mName').value.trim(); if (!n) { $('mName').focus(); toast('Enter an item name'); return; }
+      var q = $('mQty').value;
+      commit([{ name: n, qty: q === '' ? 1 : +q, unit: $('mUnit').value.trim(), loc: $('mLoc').value, kind: $('mKind').value, date: $('mDate').value, on: true, dupMode: 'merge' }]);
+      $('mName').value = ''; $('mQty').value = 1; $('mUnit').value = ''; $('mDate').value = '';
+      toast(n + ' added to ' + $('mLoc').value); badges(); $('mName').focus();
+    };
+  }
+  function barcodeBars() {
+    var x = 130, out = '', w = [2, 1, 3, 1, 2, 2, 1, 3, 1, 1, 2, 3, 1, 2, 1, 1, 3, 2, 1, 2, 1, 3, 1, 2, 2, 1, 1, 3, 2, 1, 2, 1, 3, 1, 2];
+    w.forEach(function (n, k) { if (k % 2 === 0) out += '<rect x="' + x + '" y="115" width="' + (n * 1.8) + '" height="85" fill="#111"/>'; x += n * 1.8 + 1.4; });
+    return out;
+  }
+  function sceneSvg() {
+    return '<svg class="scene" viewBox="0 0 400 330" role="img" aria-label="Illustration of eggs, bananas, milk, cheese and a bag of greens on a counter">' +
+      '<rect width="400" height="330" fill="#3b4a42"/><rect y="210" width="400" height="120" fill="#c9b79c"/><rect y="210" width="400" height="6" fill="#b3a084"/>' +
+      '<rect x="30" y="170" width="120" height="52" rx="6" fill="#a99c86"/><g fill="#efe6d2">' + [0, 1, 2, 3, 4].map(function (k) { return '<ellipse cx="' + (46 + k * 22) + '" cy="182" rx="9" ry="6"/>'; }).join('') + '</g><rect x="30" y="186" width="120" height="36" rx="5" fill="#b8ab93"/>' +
+      '<rect x="168" y="96" width="58" height="126" rx="4" fill="#f4f6f8"/><path d="M168 96 l29 -22 l29 22z" fill="#e3e8ee"/><rect x="168" y="130" width="58" height="34" fill="#3d7fc1"/>' +
+      '<path d="M244 190 q40 -60 92 -18 q-48 -16 -86 30z" fill="#f2cf3d"/><path d="M250 200 q44 -50 96 -6 q-52 -10 -90 18z" fill="#e8c02b"/>' +
+      '<path d="M300 222 l46 -32 l30 32z" fill="#f0b84a"/><path d="M60 222 q-10 -20 0 -38" stroke="#5a6" stroke-width="0" fill="none"/>' +
+      '<path d="M70 300 q60 -40 120 -20 q30 10 40 30z" fill="#6f9f5a" opacity=".95"/><path d="M90 300 q40 -26 90 -14" stroke="#4f7d3e" stroke-width="3" fill="none"/></svg>';
+  }
+  function runPipeline(steps, result, source) {
+    scan.stage = 'processing'; $('sub').textContent = 'Working…';
+    view.innerHTML = '<div class="list" style="padding:18px"><ul class="steps">' + steps.map(function (s, k) { return '<li id="st' + k + '"><span class="dot"></span>' + esc(s) + '</li>'; }).join('') + '</ul></div>' +
+      '<p class="fine">Images are compressed on the phone and sent over an encrypted connection. In this demo nothing leaves your browser.</p>';
+    var k = 0;
+    (function next() {
+      if (tab !== 'scan' || scan.stage !== 'processing') return;
+      if (k > 0) { var p = $('st' + (k - 1)); if (p) { p.className = 'ok'; p.firstChild.textContent = '✓'; } }
+      if (k === steps.length) {
+        scan.cands = result.map(function (r) {
+          var c = JSON.parse(JSON.stringify(r)); c.on = !r.off; c.date = ''; c.kind = 'Use by'; c.dupMode = 'merge'; c.flags = c.flags || []; return c;
+        });
+        scan.source = source; scan.stage = 'review'; setTimeout(renderScan, 250); return;
+      }
+      var cur = $('st' + k); if (cur) cur.className = 'on';
+      k++; setTimeout(next, 650);
+    })();
+  }
+  function confChip(c) {
+    if (c.conf == null) return '<span class="conf you">Added by you</span>';
+    if (c.source === 'barcode' || c.conf === 1) return '<span class="conf hi">Barcode match</span>';
+    var p = Math.round(c.conf * 100);
+    return '<span class="conf ' + (c.conf >= .85 ? 'hi' : c.conf >= .65 ? 'mid' : 'lo') + '">' + (c.conf >= .85 ? 'High' : c.conf >= .65 ? 'Medium' : 'Low') + ' ' + p + '%</span>';
+  }
+  function renderReview() {
+    var srcName = { photo: 'photo', barcode: 'barcode', receipt: 'receipt' }[scan.source];
+    var on = scan.cands.filter(function (c) { return c.on; });
+    var missingQty = on.filter(function (c) { return c.qty == null || c.qty === ''; }).length;
+    var h = '<div class="banner"><b>' + scan.cands.length + ' item' + (scan.cands.length > 1 ? 's' : '') + ' found in your ' + srcName + '</b>Check names, quantities, locations and dates. Nothing is added until you confirm.</div>';
+    h += scan.cands.map(function (c, k) {
+      var dup = find(c.name);
+      var needQty = c.on && (c.qty == null || c.qty === '');
+      return '<div class="cand' + (c.on ? '' : ' off') + '">' +
+        '<div class="top"><input type="checkbox" data-f="on" data-k="' + k + '"' + (c.on ? ' checked' : '') + ' aria-label="Include ' + esc(c.name) + '"><input class="nm" data-f="name" data-k="' + k + '" value="' + esc(c.name) + '" aria-label="Item name">' + confChip(c) + '</div>' +
+        (c.raw ? '<div class="raw">' + esc(c.raw) + '</div>' : '') +
+        (c.alts ? '<div class="alts">Did you mean ' + c.alts.map(function (a) { return '<button data-alt="' + esc(a) + '" data-k="' + k + '">' + esc(a) + '</button>'; }).join('') + '</div>' : '') +
+        c.flags.map(function (f) { return '<div class="flag ' + (f[0] === 'need' && needQty ? 'need' : '') + '">' + esc(f[1]) + '</div>'; }).join('') +
+        (needQty && !c.flags.some(function (f) { return f[0] === 'need'; }) ? '<div class="flag need">Enter a quantity.</div>' : '') +
+        '<div class="grid3"><label class="field">Qty<input type="number" min="0" step="any" data-f="qty" data-k="' + k + '" value="' + (c.qty == null ? '' : c.qty) + '" placeholder="?"></label>' +
+        '<label class="field">Where<select data-f="loc" data-k="' + k + '">' + locOptions(c.loc) + '</select></label>' +
+        '<label class="field">Date<input type="date" data-f="date" data-k="' + k + '" value="' + esc(c.date) + '"></label></div>' +
+        (dup ? '<div class="dup"><span>You already have <b>' + esc(fmtQty(dup.qty, dup.unit)) + '</b> ' + esc(dup.name.toLowerCase()) + ' in ' + esc(dup.loc) + '.</span><div class="seg" role="group" aria-label="Duplicate handling"><button data-dup="merge" data-k="' + k + '" aria-pressed="' + (c.dupMode === 'merge') + '">Add to it</button><button data-dup="separate" data-k="' + k + '" aria-pressed="' + (c.dupMode === 'separate') + '">Keep separate</button></div></div>' : '') +
+        '</div>';
+    }).join('');
+    h += '<button class="btn line block" id="addMissed">+ Add an item it missed</button>';
+    h += '<div class="confirmbar"><button class="btn block" id="confirm"' + (on.length && !missingQty ? '' : ' disabled') + '>' +
+      (!on.length ? 'Select items to add' : missingQty ? 'Enter ' + missingQty + ' missing quantit' + (missingQty > 1 ? 'ies' : 'y') : 'Add ' + on.length + ' item' + (on.length > 1 ? 's' : '') + ' to kitchen') + '</button>' +
+      '<button class="btn ghost block" id="discard">Discard scan</button></div>';
+    view.innerHTML = h;
+    view.querySelectorAll('[data-f]').forEach(function (el) {
+      var ev = el.type === 'checkbox' || el.tagName === 'SELECT' || el.type === 'date' ? 'change' : 'change';
+      el.addEventListener(ev, function () {
+        var c = scan.cands[+el.dataset.k], f = el.dataset.f;
+        if (f === 'on') c.on = el.checked;
+        else if (f === 'qty') c.qty = el.value === '' ? null : +el.value;
+        else if (f === 'name') { c.name = el.value.trim() || c.name; c.alts = null; }
+        else c[f] = el.value;
+        var y = view.scrollTop; renderReview(); view.scrollTop = y;
+      });
+      if (el.dataset.f === 'qty') el.addEventListener('input', function () {
+        scan.cands[+el.dataset.k].qty = el.value === '' ? null : +el.value; refreshConfirm();
+      });
+    });
+    view.querySelectorAll('[data-alt]').forEach(function (b) { b.onclick = function () { var c = scan.cands[+b.dataset.k]; c.name = b.dataset.alt; c.alts = null; c.flags = c.flags.filter(function (f) { return f[1].indexOf('Low confidence') < 0; }); var y = view.scrollTop; renderReview(); view.scrollTop = y; }; });
+    view.querySelectorAll('[data-dup]').forEach(function (b) { b.onclick = function () { scan.cands[+b.dataset.k].dupMode = b.dataset.dup; var y = view.scrollTop; renderReview(); view.scrollTop = y; }; });
+    $('addMissed').onclick = function () {
+      scan.cands.push({ name: 'New item', qty: 1, unit: '', loc: 'Fridge', conf: null, flags: [], on: true, date: '', kind: 'Use by', dupMode: 'merge' });
+      renderReview(); var nms = view.querySelectorAll('.nm'); var last = nms[nms.length - 1]; last.focus(); last.select();
+    };
+    $('discard').onclick = function () { scan.stage = 'pick'; scan.cands = []; renderScan(); toast('Scan discarded. Nothing was saved.'); };
+    $('confirm').onclick = function () {
+      var picked = scan.cands.filter(function (c) { return c.on; });
+      commit(picked); scan.done = picked; scan.stage = 'done'; renderScan(); badges();
+    };
+  }
+  function refreshConfirm() {
+    var on = scan.cands.filter(function (c) { return c.on; });
+    var m = on.filter(function (c) { return c.qty == null || c.qty === ''; }).length;
+    var b = $('confirm'); if (!b) return;
+    b.disabled = !on.length || m > 0;
+    b.textContent = !on.length ? 'Select items to add' : m ? 'Enter ' + m + ' missing quantit' + (m > 1 ? 'ies' : 'y') : 'Add ' + on.length + ' item' + (on.length > 1 ? 's' : '') + ' to kitchen';
+  }
+  function commit(cands) {
+    cands.forEach(function (c) {
+      var date = typeof c.date === 'number' ? c.date : fromIso(c.date);
+      var dup = find(c.name);
+      if (dup && c.dupMode !== 'separate') {
+        if (dup.unit === c.unit || !c.unit) dup.qty = (dup.qty || 0) + (+c.qty || 0);
+        else { dup.qty = c.qty; dup.unit = c.unit; }
+        if (date != null) { dup.date = date; dup.kind = c.kind || dup.kind; }
+      } else {
+        state.items.push({ id: nid('i'), name: c.name, qty: c.qty == null ? 1 : +c.qty, unit: c.unit || '', loc: c.loc, date: date, kind: c.kind || 'Use by' });
+      }
+      var l = onList(c.name); if (l) { l.bought = true; }
+    });
+    save();
+  }
+  function renderDone() {
+    var n = scan.done.length, top = rank()[0];
+    view.innerHTML = '<div class="list" style="padding:18px;display:grid;gap:6px"><b style="font-family:var(--display);font-size:1.3rem">Added ' + n + ' item' + (n > 1 ? 's' : '') + ' to your kitchen</b>' +
+      '<span class="meta">' + scan.done.map(function (c) { return esc(c.name); }).join(' · ') + '</span>' +
+      '<span style="font-size:14px;color:var(--muted)">Recipes refreshed. Top pick now: <b style="color:var(--ink)">' + esc(top ? top.r.name : 'none') + '</b></span></div>' +
+      '<div class="stage-acts"><button class="btn block" data-go="cook">See recipes</button><button class="btn ghost block" data-go="kitchen">View My Kitchen</button><button class="btn line block" id="again">Scan more</button></div>';
+    $('again').onclick = function () { scan.stage = 'pick'; renderScan(); };
+  }
+
+  // ---------- Meal images ----------
+  // In the product these come from an image model, one per recipe, cached and labelled.
+  // The prototype draws stand-ins so the layout and labelling can be judged.
+  var ART_KEY = {
+    'Lemon-garlic salmon with wilted spinach': 'salmon', 'Chicken & pepper rice bowl with garlic yogurt': 'chicken',
+    'Fresh tomato & basil penne': 'penne', 'Chickpea shakshuka': 'shakshuka', 'Prawn & pea fried rice': 'friedrice', 'Smashed avocado & egg toast': 'toast'
+  };
+  var artCache = {};
+  function rng(seed) { return function () { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
+  function f1(n) { return Math.round(n * 10) / 10; }
+  function scatter(r, n, cx, cy, rx, ry, fn) {
+    var s = '';
+    for (var i = 0; i < n; i++) { var a = r() * Math.PI * 2, d = Math.sqrt(r()); s += fn(f1(cx + Math.cos(a) * d * rx), f1(cy + Math.sin(a) * d * ry), r, i); }
+    return s;
+  }
+  function grain(col) { return function (x, y, r) { return '<ellipse cx="' + x + '" cy="' + y + '" rx="3.2" ry="1.4" fill="' + col + '" transform="rotate(' + Math.round(r() * 180) + ' ' + x + ' ' + y + ')"/>'; }; }
+  function leaf(cols, w, h) { return function (x, y, r) { return '<ellipse cx="' + x + '" cy="' + y + '" rx="' + f1(w * (.7 + r() * .5)) + '" ry="' + f1(h * (.7 + r() * .5)) + '" fill="' + cols[Math.floor(r() * cols.length)] + '" transform="rotate(' + Math.round(r() * 180) + ' ' + x + ' ' + y + ')"/>'; }; }
+  function dot(cols, rad) { return function (x, y, r) { return '<circle cx="' + x + '" cy="' + y + '" r="' + f1(rad * (.75 + r() * .5)) + '" fill="' + cols[Math.floor(r() * cols.length)] + '"/>'; }; }
+  function egg(x, y, s) {
+    return '<path d="M' + (x - 17 * s) + ' ' + y + ' q2 -16 18 -15 q16 -2 17 13 q1 15 -17 16 q-19 1 -18 -14z" fill="#fbf8f1" transform="translate(0 0)"/>' +
+      '<circle cx="' + (x + 1) + '" cy="' + (y - 1) + '" r="' + f1(7 * s) + '" fill="#f3b22a"/><circle cx="' + (x - 1) + '" cy="' + (y - 3) + '" r="' + f1(2 * s) + '" fill="#fbd673"/>';
+  }
+  function plate(id, table, grainCol) {
+    return '<defs><radialGradient id="pg' + id + '" cx="45%" cy="40%" r="65%"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e9e5dc"/></radialGradient></defs>' +
+      '<rect width="320" height="150" fill="' + table + '"/>' +
+      [18, 46, 88, 121, 139].map(function (y) { return '<path d="M0 ' + y + ' Q160 ' + (y + 6) + ' 320 ' + (y - 3) + '" stroke="' + grainCol + '" stroke-width="1.2" fill="none" opacity=".35"/>'; }).join('') +
+      '<ellipse cx="164" cy="82" rx="70" ry="66" fill="#000" opacity=".18"/><circle cx="160" cy="75" r="68" fill="url(#pg' + id + ')"/><circle cx="160" cy="75" r="53" fill="none" stroke="#e2ddd2" stroke-width="1.5"/>';
+  }
+  // Real AI-generated images, where we have them. Others fall back to drawn stand-ins.
+  var PHOTOS = { 'Lemon-garlic salmon with wilted spinach': 'img/salmon.jpg' };
+  function mealArt(name) {
+    if (artCache[name]) return artCache[name];
+    if (PHOTOS[name]) return (artCache[name] = '<img src="' + PHOTOS[name] + '" alt="AI-generated image of ' + esc(name) + '" loading="lazy">');
+    var key = ART_KEY[name] || 'salmon', r = rng(name.length * 7919 + key.charCodeAt(0)), s = '';
+    if (key === 'salmon') {
+      s += plate('s', '#3e4a50', '#2c363b');
+      s += scatter(r, 170, 136, 88, 30, 24, grain('#f6f1e4')) + scatter(r, 40, 136, 88, 28, 22, grain('#e4dccb'));
+      s += scatter(r, 16, 178, 100, 26, 14, leaf(['#2f6b34', '#3d7f3f', '#24552a'], 10, 5));
+      s += '<g transform="rotate(-14 180 62)"><rect x="150" y="46" width="64" height="32" rx="12" fill="#e57f52"/><rect x="150" y="46" width="64" height="10" rx="6" fill="#b85a35" opacity=".75"/>' +
+        [164, 176, 188, 200].map(function (x) { return '<path d="M' + x + ' 50 q4 13 -1 26" stroke="#f7c2a2" stroke-width="2" fill="none"/>'; }).join('') + '</g>';
+      s += '<path d="M112 46 a16 16 0 0 1 28 10 z" fill="#f4d23c"/><path d="M115 47 a13 13 0 0 1 22 8" stroke="#fff4b0" stroke-width="2" fill="none"/>';
+      s += scatter(r, 7, 186, 98, 20, 10, dot(['#f2ead2'], 2.4));
+    } else if (key === 'chicken') {
+      s += plate('c', '#c8b8a0', '#a8977d');
+      s += scatter(r, 150, 130, 70, 28, 34, grain('#f6f1e4'));
+      for (var i = 0; i < 5; i++) s += '<g transform="rotate(' + (-30 + i * 6) + ' ' + (170 + i * 7) + ' ' + (46 + i * 12) + ')"><rect x="' + (156 + i * 7) + '" y="' + (40 + i * 12) + '" width="34" height="13" rx="5" fill="#b8733a"/><rect x="' + (156 + i * 7) + '" y="' + (40 + i * 12) + '" width="34" height="4" rx="2" fill="#8a4f22"/></g>';
+      s += scatter(r, 10, 178, 104, 22, 10, function (x, y, rr) { return '<rect x="' + x + '" y="' + y + '" width="16" height="4" rx="2" fill="' + (rr() > .5 ? '#d8362a' : '#f2b12b') + '" transform="rotate(' + Math.round(rr() * 160) + ' ' + x + ' ' + y + ')"/>'; });
+      s += scatter(r, 5, 130, 105, 14, 8, function (x, y) { return '<path d="M' + x + ' ' + y + ' a8 8 0 0 1 14 0" stroke="#9b4f8c" stroke-width="2.5" fill="none"/>'; });
+      s += '<circle cx="122" cy="52" r="14" fill="#fbfaf6"/><circle cx="122" cy="52" r="14" fill="none" stroke="#ece6d8"/>' + scatter(r, 6, 122, 52, 8, 8, dot(['#8aa65a'], 1.2));
+    } else if (key === 'penne') {
+      s += plate('p', '#e5ddd0', '#cfc4b2');
+      s += scatter(r, 9, 160, 76, 34, 30, dot(['#c9412e', '#b43424'], 12));
+      s += scatter(r, 30, 160, 76, 40, 38, function (x, y, rr) {
+        var a = Math.round(rr() * 180);
+        return '<g transform="rotate(' + a + ' ' + x + ' ' + y + ')"><rect x="' + (x - 9) + '" y="' + (y - 3.5) + '" width="18" height="7" rx="2" fill="#eab968"/><path d="M' + (x - 5) + ' ' + (y - 3.5) + ' v7 M' + x + ' ' + (y - 3.5) + ' v7 M' + (x + 5) + ' ' + (y - 3.5) + ' v7" stroke="#cf9a45" stroke-width="1"/></g>';
+      });
+      s += scatter(r, 8, 160, 72, 28, 24, dot(['#d84c36'], 5));
+      s += scatter(r, 7, 160, 70, 30, 26, leaf(['#2f8a3a', '#3fa047'], 7, 4));
+      s += scatter(r, 40, 160, 76, 34, 32, function (x, y) { return '<rect x="' + x + '" y="' + y + '" width="2.2" height="1.6" fill="#fbf3d6"/>'; });
+    } else if (key === 'shakshuka') {
+      s += '<rect width="320" height="150" fill="#5a4636"/>' + [30, 70, 110].map(function (y) { return '<path d="M0 ' + y + ' Q160 ' + (y + 8) + ' 320 ' + y + '" stroke="#4a382a" stroke-width="2" fill="none"/>'; }).join('');
+      s += '<rect x="214" y="68" width="90" height="14" rx="7" fill="#1d1d1d"/><circle cx="160" cy="75" r="66" fill="#1f1f1f"/><circle cx="160" cy="75" r="57" fill="#c2432e"/>';
+      s += scatter(r, 22, 160, 75, 48, 48, dot(['#a83423', '#d0563c'], 6));
+      s += scatter(r, 14, 160, 75, 46, 46, dot(['#e2c386', '#d4b06e'], 3.6));
+      s += scatter(r, 8, 160, 75, 44, 44, function (x, y, rr) { return '<rect x="' + x + '" y="' + y + '" width="12" height="4" rx="2" fill="#5e8f3a" transform="rotate(' + Math.round(rr() * 160) + ' ' + x + ' ' + y + ')"/>'; });
+      s += egg(136, 56, 1) + egg(182, 54, 1) + egg(138, 98, 1) + egg(184, 96, 1);
+      s += scatter(r, 12, 160, 75, 44, 44, function (x, y) { return '<rect x="' + x + '" y="' + y + '" width="5" height="4" rx="1" fill="#fbfaf4"/>'; });
+      s += scatter(r, 16, 160, 75, 48, 48, dot(['#3f8a3d'], 1.4));
+    } else if (key === 'friedrice') {
+      s += '<rect width="320" height="150" fill="#2f3d46"/>' + [26, 64, 104, 136].map(function (y) { return '<path d="M0 ' + y + ' L320 ' + (y + 4) + '" stroke="#26323a" stroke-width="2"/>'; }).join('');
+      s += '<ellipse cx="164" cy="82" rx="68" ry="64" fill="#000" opacity=".25"/><circle cx="160" cy="75" r="64" fill="#f2f4f2"/><circle cx="160" cy="75" r="64" fill="none" stroke="#3d6a8a" stroke-width="5"/><circle cx="160" cy="75" r="56" fill="#e3d3a8"/>';
+      s += scatter(r, 230, 160, 75, 52, 52, grain('#f3e6c4')) + scatter(r, 60, 160, 75, 50, 50, grain('#c9a86a'));
+      s += scatter(r, 26, 160, 75, 48, 48, dot(['#5ea33c', '#4c8f2f'], 3.4));
+      s += scatter(r, 10, 160, 75, 44, 44, function (x, y, rr) { return '<path d="M' + x + ' ' + y + ' a7 7 0 1 1 10 6" stroke="#f08867" stroke-width="5.5" stroke-linecap="round" fill="none" transform="rotate(' + Math.round(rr() * 360) + ' ' + x + ' ' + y + ')"/>'; });
+      s += scatter(r, 9, 160, 75, 46, 46, dot(['#f6c443'], 4));
+      s += scatter(r, 10, 160, 75, 46, 46, function (x, y) { return '<circle cx="' + x + '" cy="' + y + '" r="2.6" fill="none" stroke="#7fbf4d" stroke-width="1.5"/>'; });
+    } else {
+      s += '<rect width="320" height="150" fill="#dfe3df"/><rect x="40" y="16" width="240" height="118" rx="16" fill="#b9874f"/><rect x="40" y="16" width="240" height="118" rx="16" fill="none" stroke="#9b6c3b" stroke-width="2"/>';
+      [70, 166].forEach(function (x, k) {
+        s += '<rect x="' + x + '" y="' + (28 + k * 6) + '" width="86" height="92" rx="20" fill="#a8692e"/><rect x="' + (x + 5) + '" y="' + (33 + k * 6) + '" width="76" height="82" rx="16" fill="#e0ad68"/>';
+        s += scatter(r, 18, x + 43, 76 + k * 6, 32, 34, dot(['#9cc46a', '#86b356', '#b3d57f'], 8));
+      });
+      s += egg(198, 76, 1.25);
+      s += scatter(r, 18, 160, 76, 100, 46, function (x, y) { return '<rect x="' + x + '" y="' + y + '" width="2.4" height="1.6" fill="#c8331f"/>'; });
+      s += '<path d="M96 44 a13 13 0 0 1 22 8 z" fill="#f4d23c" transform="rotate(20 107 48)"/>';
+    }
+    var svg = '<svg viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Illustration of ' + esc(name) + '">' + s + '</svg>';
+    artCache[name] = svg;
+    return svg;
+  }
+
+  // ---------- Cook ----------
+  var openR = null;
+  function renderCook() {
+    var p = state.prefs, list = rank();
+    $('sub').textContent = list.length + ' recipe' + (list.length === 1 ? '' : 's') + ' for your kitchen';
+    var h = '<div class="seg" role="group" aria-label="Time">' + [['any', 'Any time'], ['15', '≤ 15 min'], ['30', '≤ 30 min']].map(function (t) { return '<button data-time="' + t[0] + '" aria-pressed="' + (p.time === t[0]) + '">' + t[1] + '</button>'; }).join('') +
+      '<button data-soon aria-pressed="' + p.useSoon + '">Use soon first</button></div>' +
+      '<div class="seg" role="group" aria-label="Dietary preferences">' + Object.keys(DIET).map(function (d) { return '<button data-diet="' + d + '" aria-pressed="' + (p.diet.indexOf(d) > -1) + '">' + DIET[d] + '</button>'; }).join('') + '</div>';
+    if (!list.length) h += '<div class="list"><div class="empty">No recipes match these filters.<br><button class="btn small" style="margin-top:10px" id="clearF">Clear filters</button></div></div>';
+    h += list.map(function (x, k) {
+      var r = x.r, open = openR === r.name;
+      var why = x.exp.length ? 'Uses <b>' + x.exp.length + ' item' + (x.exp.length > 1 ? 's' : '') + ' to use soon</b>' : 'Uses what you have';
+      why += x.miss.length ? ' · missing ' + x.miss.length : ' · nothing to buy';
+      return '<article class="recipe"><div class="art">' + mealArt(r.name) + '<span class="ai-tag">AI image · serving suggestion</span></div><span class="match">' + x.pct + '% in stock</span><h4>' + esc(r.name) + '</h4>' +
+        '<p class="why">' + r.mins + ' min' + (r.diet.length ? ' · ' + r.diet.map(function (d) { return DIET[d].toLowerCase(); }).join(', ') : '') + '<br>' + why + '</p>' +
+        '<div class="ings">' + r.uses.map(function (u) { var c = x.miss.indexOf(u) > -1 ? 'miss' : x.exp.indexOf(u) > -1 ? 'exp' : ''; return '<span class="ing ' + c + '">' + esc(u) + '</span>'; }).join('') + '</div>' +
+        '<div class="acts"><button class="btn small ghost" data-steps="' + k + '" aria-expanded="' + open + '">' + (open ? 'Hide steps' : 'Steps') + '</button>' +
+        (x.miss.length ? '<button class="btn small ghost" data-miss="' + k + '">Add ' + x.miss.length + ' to list</button>' : '') +
+        '<button class="btn small" data-cooked="' + k + '">I cooked this</button></div>' +
+        (open ? '<ol>' + r.steps.map(function (s) { return '<li>' + esc(s) + '</li>'; }).join('') + '</ol>' + (r.safety ? '<div class="safety"><b>Cooking check:</b> ' + esc(r.safety) + '</div>' : '') : '') +
+        '</article>';
+    }).join('');
+    if (list.length) h += '<p class="fine" style="margin:0 4px 12px">Meal images are AI-generated serving suggestions, not photos of your food. In this prototype only the salmon image is real; the rest are drawn stand-ins.</p>';
+    h += '<div class="later"><b>Weekly meal plan</b>Plan seven days around what you have, then build the shopping list. Coming in a later release.</div>';
+    view.innerHTML = h;
+    view.querySelectorAll('[data-time]').forEach(function (b) { b.onclick = function () { p.time = b.dataset.time; save(); renderCook(); }; });
+    view.querySelector('[data-soon]').onclick = function () { p.useSoon = !p.useSoon; save(); renderCook(); };
+    view.querySelectorAll('[data-diet]').forEach(function (b) { b.onclick = function () { var d = b.dataset.diet, i = p.diet.indexOf(d); if (i > -1) p.diet.splice(i, 1); else p.diet.push(d); save(); renderCook(); }; });
+    if ($('clearF')) $('clearF').onclick = function () { p.time = 'any'; p.diet = []; save(); renderCook(); };
+    view.querySelectorAll('[data-steps]').forEach(function (b) { b.onclick = function () { var n = list[+b.dataset.steps].r.name; openR = openR === n ? null : n; renderCook(); }; });
+    view.querySelectorAll('[data-miss]').forEach(function (b) { b.onclick = function () {
+      var x = list[+b.dataset.miss], added = x.miss.filter(function (m) { return addToList(m, 'missing', 'For ' + x.r.name.toLowerCase()); });
+      save(); badges(); toast(added.length ? 'Added ' + added.join(', ') + ' to your list' : 'Already on your list');
+    }; });
+    view.querySelectorAll('[data-cooked]').forEach(function (b) { b.onclick = function () { cookedSheet(list[+b.dataset.cooked]); }; });
+  }
+  function cookedSheet(x) {
+    var have = x.r.uses.map(find).filter(Boolean);
+    openSheet('<h3 id="sheetTitle">Update your kitchen?</h3><p style="margin:0;color:var(--muted);font-size:14px">Tick what you used up. Unticked items stay.</p>' +
+      '<div class="list">' + have.map(function (i) {
+        var used = i.loc === 'Fridge' || (days(i) != null && days(i) <= 14);
+        return '<div class="check"><input type="checkbox" id="cu-' + i.id + '" data-used="' + i.id + '"' + (used ? ' checked' : '') + '><label for="cu-' + i.id + '"><span>' + esc(i.name) + '</span><small>' + esc(fmtQty(i.qty, i.unit)) + ' · ' + esc(i.loc) + '</small></label></div>';
+      }).join('') + '</div><div class="acts"><button class="btn ghost" data-close>Cancel</button><button class="btn" id="cuSave">Update kitchen</button></div>', function (s) {
+      $('cuSave').onclick = function () {
+        var ids = [].map.call(s.querySelectorAll('[data-used]:checked'), function (c) { return c.dataset.used; });
+        state.items = state.items.filter(function (i) { return ids.indexOf(i.id) < 0; });
+        save(); closeSheet(); renderCook(); badges(); toast(ids.length + ' item' + (ids.length === 1 ? '' : 's') + ' removed from your kitchen');
+      };
+    });
+  }
+
+  // ---------- Shopping list ----------
+  var SECS = [['missing', 'Missing ingredients'], ['essential', 'Recurring essentials'], ['household', 'Household']];
+  function renderList() {
+    $('sub').textContent = openList().length + ' to buy';
+    var h = '<form class="addrow" id="addForm"><input class="input" id="addName" placeholder="Add an item" autocomplete="off" aria-label="Item to add">' +
+      '<select class="input" id="addSec" aria-label="List section">' + SECS.map(function (s) { return '<option value="' + s[0] + '">' + s[1].split(' ')[0] + '</option>'; }).join('') + '</select><button class="btn" type="submit">Add</button></form>';
+    SECS.forEach(function (s) {
+      var rows = state.list.filter(function (l) { return l.sec === s[0]; });
+      h += '<div class="sec-h"><h3>' + s[1] + '</h3><span class="meta">' + rows.filter(function (l) { return !l.bought; }).length + '</span></div>';
+      if (!rows.length) { h += '<div class="list"><div class="empty">' + (s[0] === 'missing' ? 'Add missing ingredients from any recipe.' : 'Nothing here.') + '</div></div>'; return; }
+      h += '<div class="list">' + rows.map(function (l) {
+        return '<div class="check' + (l.bought ? ' done' : '') + '"><input type="checkbox" id="b-' + l.id + '" data-buy="' + l.id + '"' + (l.bought ? ' checked' : '') + '><label for="b-' + l.id + '"><span>' + esc(l.name) + '</span>' + (l.note ? '<small>' + esc(l.note) + '</small>' : '') + '</label></div>';
+      }).join('') + '</div>';
+    });
+    var boughtFood = state.list.filter(function (l) { return l.bought && !l.settled && l.sec !== 'household'; });
+    var boughtAny = state.list.some(function (l) { return l.bought && !l.settled; });
+    if (boughtAny) h += '<div class="confirmbar">' + (boughtFood.length ? '<button class="btn block" id="toKitchen">Add ' + boughtFood.length + ' bought item' + (boughtFood.length > 1 ? 's' : '') + ' to kitchen</button>' : '') + '<button class="btn ghost block" id="clearBought">Clear bought items</button></div>';
+    view.innerHTML = h;
+    $('addForm').onsubmit = function (e) {
+      e.preventDefault(); var v = $('addName').value.trim(); if (!v) return;
+      if (!addToList(v, $('addSec').value)) toast(v + ' is already on your list');
+      save(); renderList(); badges(); $('addName').focus();
+    };
+    view.querySelectorAll('[data-buy]').forEach(function (c) { c.onchange = function () {
+      var l = state.list.find(function (x) { return x.id === c.dataset.buy; }); l.bought = c.checked; l.settled = false; save(); var y = view.scrollTop; renderList(); view.scrollTop = y; badges();
+    }; });
+    if ($('clearBought')) $('clearBought').onclick = function () { clearBought(); };
+    if ($('toKitchen')) $('toKitchen').onclick = function () { boughtSheet(boughtFood); };
+  }
+  // Recurring essentials stay on the list, ticked, until their next cycle; everything else is cleared.
+  function settle(l) { if (l.sec === 'essential') { l.bought = true; l.settled = true; l.note = 'Every week · bought today, back in 7 days'; return true; } return false; }
+  function clearBought() {
+    state.list = state.list.filter(function (l) { return !l.bought || l.settled || settle(l); });
+    save(); renderList(); badges();
+  }
+  function boughtSheet(rows) {
+    openSheet('<h3 id="sheetTitle">Add to your kitchen</h3><p style="margin:0;color:var(--muted);font-size:14px">Confirm amounts and where each item goes. Add dates from the packs if you have them.</p>' +
+      rows.map(function (l, k) {
+        var known = find(l.name);
+        return '<div class="cand"><b>' + esc(l.name) + '</b><div class="grid3"><label class="field">Qty<input type="number" min="0" step="any" id="bq' + k + '" value="1"></label>' +
+          '<label class="field">Where<select id="bl' + k + '">' + locOptions(known ? known.loc : 'Fridge') + '</select></label>' +
+          '<label class="field">Date<input type="date" id="bd' + k + '"></label></div></div>';
+      }).join('') + '<div class="acts"><button class="btn ghost" data-close>Cancel</button><button class="btn" id="bSave">Add ' + rows.length + ' to kitchen</button></div>', function () {
+      $('bSave').onclick = function () {
+        commit(rows.map(function (l, k) { var known = find(l.name); return { name: l.name, qty: +$('bq' + k).value || 1, unit: known ? known.unit : '', loc: $('bl' + k).value, date: $('bd' + k).value, kind: 'Use by', dupMode: 'merge' }; }));
+        state.list = state.list.filter(function (l) { return rows.indexOf(l) < 0 || settle(l); });
+        save(); closeSheet(); renderList(); badges(); toast(rows.length + ' item' + (rows.length > 1 ? 's' : '') + ' added to your kitchen');
+      };
+    });
+  }
+
+  // ---------- global wiring ----------
+  document.querySelectorAll('.tabs button').forEach(function (b) { b.onclick = function () { if (b.dataset.tab === 'scan' && scan.stage === 'done') scan.stage = 'pick'; go(b.dataset.tab); }; });
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    var c = t.closest('[data-close]'); if (c) { closeSheet(); return; }
+    var g = t.closest('[data-go]'); if (g) { go(g.dataset.go, { mode: g.dataset.mode }); return; }
+    var ed = t.closest('[data-edit]'); if (ed) { editItem(ed.dataset.edit); return; }
+    var kl = t.closest('[data-kloc]'); if (kl) { kLoc = kl.dataset.kloc; renderKitchen(); return; }
+    var inc = t.closest('[data-inc]'), dec = t.closest('[data-dec]');
+    if (inc || dec) {
+      var id = (inc || dec).dataset[inc ? 'inc' : 'dec'];
+      var it = state.items.find(function (x) { return x.id === id; });
+      var q = (it.qty || 0) + (inc ? 1 : -1) * step(it.unit);
+      if (q <= 0) { state.items = state.items.filter(function (x) { return x !== it; }); toast(it.name + ' used up and removed'); }
+      else it.qty = q;
+      save(); renderKList(); badges();
+    }
+  });
+  $('reset').onclick = function () {
+    state = seed(); save(); kLoc = 'All'; kQuery = ''; openR = null; scan = { mode: 'photo', stage: 'pick', cands: [], photoUrl: null, done: [] };
+    go('home'); toast('Demo reset');
+  };
+  // Image prompts, one per recipe, sharing a style matched to the reference salmon photo.
+  var STYLE = 'Photorealistic food photography, close-up at a 45-degree angle, served on a speckled cream stoneware plate on a dark wooden table, soft warm natural side light, shallow depth of field, glossy sauce, finely chopped fresh parsley garnish, rich realistic textures, appetizing, no text, no hands, no cutlery, 3:2 landscape.';
+  var SUBJECTS = [
+    ['Lemon-garlic salmon with wilted spinach', 'A pan-seared salmon fillet with a crisp golden crust, topped with charred lemon slices, beside wilted spinach with minced garlic in a buttery lemon pan sauce.'],
+    ['Chicken & pepper rice bowl with garlic yogurt', 'Sliced roasted chicken thighs with charred red and yellow bell peppers and red onion over fluffy basmati rice, with a dollop of garlic yogurt sauce, in a wide shallow bowl.'],
+    ['Fresh tomato & basil penne', 'Penne pasta in a glossy fresh tomato and garlic sauce, topped with torn basil leaves and finely grated parmesan.'],
+    ['Chickpea shakshuka', 'A cast-iron skillet of tomato, onion and red pepper sauce with chickpeas, four eggs with fully set whites and golden yolks, crumbled feta and a pinch of cumin. Skillet instead of a plate.'],
+    ['Prawn & pea fried rice', 'Fried basmati rice with pink cooked prawns, bright green peas, pieces of scrambled egg and a glaze of soy sauce, in a deep ceramic bowl.'],
+    ['Smashed avocado & egg toast', 'Two slices of toasted bread with chunky smashed avocado, each topped with a fried egg with a golden yolk, a squeeze of lemon and a lemon wedge on the side.']
+  ];
+  $('prompts').innerHTML = SUBJECTS.map(function (p, k) {
+    return '<div class="prompt"><header><b>' + esc(p[0]) + '</b>' + (PHOTOS[p[0]] ? '<span class="ok">Image added</span>' : '<button class="copy" data-copy="' + k + '">Copy prompt</button>') + '</header><p id="pr' + k + '">' + esc(p[1] + ' ' + STYLE) + '</p></div>';
+  }).join('');
+  $('prompts').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-copy]'); if (!b) return;
+    var el = $('pr' + b.dataset.copy), txt = el.textContent;
+    function sel() { var r = document.createRange(); r.selectNodeContents(el); var s = getSelection(); s.removeAllRanges(); s.addRange(r); b.textContent = 'Selected, press copy'; }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy prompt'; }, 1600); }, sel);
+    else sel();
+  });
+
+  var now = new Date(); $('clock').textContent = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+  render();
+})();
+</script>
+
+</body></html>
